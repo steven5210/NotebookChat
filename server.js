@@ -9,10 +9,12 @@ app.use(express.static(path.join(__dirname, './assets')));
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
-
-var server = app.listen(9000, function(){
+var port = process.env.PORT || 9000;
+app.listen(9000, function(){
 	console.log('Listening on port over 9000!');
 })
+
+
 var users = {};
 var messages = [];
 var d = new Date();
