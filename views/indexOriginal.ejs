@@ -1,0 +1,99 @@
+<html>
+<head>
+	<title><%=title%></title>
+	<!--Import jQuery before materialize.js-->
+      <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+	<!-- Compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.0/css/materialize.min.css">
+
+  <!-- Compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.0/js/materialize.min.js"></script>
+   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+   <script type ='text/javascript' src='/socket.io/socket.io.js'></script>
+   <script type="text/javascript">
+   	$(document).ready(function() {
+	    $('select').material_select();
+	    var socket = io.connect();
+	    var name = prompt("What is your name:");
+	    	socket.emit('a_new_user', name)
+
+		socket.on('new_user', function(users, messages){
+			$('#box').append(messages +"<br>")
+         var user = users[Object.keys(users)[Object.keys(users).length - 1]];
+         $('#box').append("<span id='user_enter'>" + user + " has just entered the chat room!</span><br>");
+		})
+		$('#message_submit').submit(function(){
+			event.preventDefault();
+			socket.emit('post_message', 
+			{message: $('#message').val()})	
+		})
+
+		socket.on('new_message', function(user_id, message, messages){
+			$('#box').append("<span id='user_color'>" + user_id+ "</span>" +" said: "+ message.message + "<br>")
+			$('#box').scrollTop($('#box')[0].scrollHeight)
+		})
+		socket.on('user_dis', function(user_id){
+			$('#box').append("<br><span id='user_color'>" + user_id  + " has disconnected. </span><br>")
+         $('.user_list').empty()
+		})
+      socket.on('show_users', function(users){
+         for(var user in users)
+         {
+         $('.user_list').append(users[user] + "<br>");
+         }
+      })
+
+	});
+   	</script>
+   	<style>
+   		h5{
+   			border-bottom: 1px solid black;
+   		}
+   		#box {
+   			border: 1px solid black;
+   			padding: 10px;
+   			height: 500px;
+   			overflow: scroll;
+   			display: inline-block;
+   			width: 800px;
+   		}
+   		#user_color {
+   			color: red;
+   		}
+         #previous_messages {
+            color: green;
+         }
+         #user_enter {
+            color: blue;
+         }
+   		.user_list {
+   			border: 1px solid black;
+   			padding: 10px;
+   			width: 193px;
+   			height: 500px;
+   			display: inline-block;
+   			vertical-align: top;
+   			margin: 0px;
+            overflow: scroll;
+            color: green;
+   		}
+   		#message {
+   			width: 300px;
+   		}
+   	</style>
+</head>
+<body class='container'>
+	<div id='board'>
+		<h5>Chat Room</h5>
+		<div id='box'>
+		</div>
+		<h5 class='user_list'></h5>
+		<form class='col s12' id='message_submit'>
+			<input id='message' type='textarea' placeholder='Message'></input>
+			<button id='submit' class='btn waves-effect waves-light'>Send</button>
+		</form>
+	</div>
+
+</body>
+</html>

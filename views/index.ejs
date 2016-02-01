@@ -1,0 +1,123 @@
+<html>
+<head>
+    <title><%=title%></title>
+    <!--Import jQuery before materialize.js-->
+      <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <!-- BOOTSTRAP CORE STYLE CSS -->
+    <link href="/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME  CSS -->
+    <link href="/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE CSS -->
+    <link href="/css/style.css" rel="stylesheet" />
+
+    <script type ='text/javascript' src='/socket.io/socket.io.js'></script>
+   <script type="text/javascript">
+    $(document).ready(function() {
+        var elem = document.getElementById('box');
+        var socket = io.connect();
+        var name = prompt("What is your name?")
+        var d = new Date();
+        var curr_date = d.getDate();
+        var curr_month = d.getMonth() + 1; //Months are zero based
+        var curr_year = d.getFullYear();
+        var date_stamp = curr_month + "/" + curr_date + "/" + curr_year;
+        var chat_box = true;
+        while (name.length == 0 || name == false)
+        {
+            var name = prompt("What is your name?");
+        }
+        if (name.length > 0)
+         {
+            socket.emit('a_new_user', name)
+         }
+
+        socket.on('new_user', function(users, messages){
+            $('#box').append(messages +"<br>")
+         var user = users[Object.keys(users)[Object.keys(users).length - 1]];
+         $('#box').append("<span id='user_enter'>" + user + " has just entered the chat room!</span><br>");
+         elem.scrollTop = elem.scrollHeight;
+        })
+        $('#message_submit').submit(function(){
+            event.preventDefault();
+            socket.emit('post_message', 
+            {message: $('#message').val()}) 
+            $('#message').val('');
+        })
+
+        socket.on('new_message', function(user_id, message, messages){
+         if(chat_box == true)
+            {
+            $('#box').append("<div class='chat-box-left'>" + message.message + "<br>" + " -" + date_stamp + "</div>")
+            $('#box').append("<div class='chat-box-name-left'>" + user_id + "</div><hr class='hr-clas' />")
+            elem.scrollTop = elem.scrollHeight;
+               chat_box = false;
+            }
+         else {
+            $('#box').append("<div class='chat-box-right'>" + message.message + "<br>" + " -" + date_stamp + "</div>")
+            $('#box').append("<div class='chat-box-name-right'>" + user_id + "</div><hr class='hr-clas' />")
+            elem.scrollTop = elem.scrollHeight;
+               chat_box = true;
+            }
+        })
+        socket.on('user_dis', function(user_id){
+            $('#box').append("<br><span id='user_color'>" + user_id  + " has disconnected. </span><br>")
+         $('#user_list').empty()
+        })
+      socket.on('show_users', function(users){
+         $('#user_list').empty();
+         for(var user in users)
+         {
+         $('#user_list').append("- " + users[user] + "<br>");
+         }
+      })
+
+    });
+    </script>
+</head>
+<body>
+
+
+    <div class="container">
+        <div class="row pad-top pad-bottom">
+
+
+            <div class=" col-lg-6 col-md-6 col-sm-6">
+                <div class="chat-box-div">
+                    <div class="chat-box-head">
+                        NOTEBOOK CHAT
+                    </div>
+                    <div class="panel-body chat-box-main" id='box'>
+                    </div>
+                    <div class="chat-box-footer">
+                        <div class="input-group">
+                           <form id='message_submit'>
+                               <input type="text" id='message' class="form-control" placeholder="Write here..."></input>
+                           </form>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-3">
+                <div class="chat-box-online-div">
+                    <div class="chat-box-online-head">
+                        ONLINE USERS
+                    </div>
+                    <div class="panel-body chat-box-online">
+
+                        <div class="chat-box-online-left" id='user_list'>
+                            <br />
+                        </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- USING SCRIPTS BELOW TO REDUCE THE LOAD TIME -->
+    <!-- CORE BOOTSTRAP SCRIPTS  FILE -->
+    <script src="/js/bootstrap.js"></script>
+</body>
+
+</html>
